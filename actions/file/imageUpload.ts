@@ -18,10 +18,10 @@ export async function uploadAvatar(file: File): Promise<T_UploadState> {
   if (!file.type.startsWith("image/"))
     return { error: "Must be a valid image format" };
 
-  const maxSize = 3 * 1024 * 1024;
+  const maxSize = 6 * 1024 * 1024;
   if (file.size > maxSize) {
     return {
-      error: `Image size must be less than 2MB`,
+      error: `Image size must be less than 6MB`,
     };
   }
 

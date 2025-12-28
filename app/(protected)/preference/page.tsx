@@ -10,7 +10,7 @@ export default async function PreferencePage() {
   }
 
   return (
-    <div className="container py-10">
+    <div className="container py-10 space-y-6">
       <PreferencesForm user={user} />
     </div>
   );
