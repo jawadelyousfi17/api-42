@@ -14,6 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { IntraUser, Preferences } from "@/lib/generated/prisma";
 import {
   Github,
@@ -25,7 +33,9 @@ import {
   User,
   Image as ImageIcon,
 } from "lucide-react";
-import { useTransition, useState } from "react";
+import Cropper, { Area } from "react-easy-crop";
+import { motion } from "framer-motion";
+import { useEffect, useMemo, useTransition, useState } from "react";
 import toast from "react-hot-toast";
 
 type UserWithPreferences = IntraUser & {
@@ -45,6 +55,23 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
     user?.cover || null
   );
 
+  const [croppedAvatarFile, setCroppedAvatarFile] = useState<File | null>(null);
+  const [croppedCoverFile, setCroppedCoverFile] = useState<File | null>(null);
+
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropTarget, setCropTarget] = useState<"avatar" | "cover" | null>(null);
+  const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null);
+  const [cropSourceFile, setCropSourceFile] = useState<File | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  const cropAspect = useMemo(() => {
+    if (cropTarget === "avatar") return 1;
+    if (cropTarget === "cover") return 20 / 9;
+    return 1;
+  }, [cropTarget]);
+
   const preferences = user?.preferences?.[0] || {};
   let socialLinks: {
     github?: string;
@@ -60,19 +87,6 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
 
   const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 
-  const setImagePreviewFromFile = async (
-    file: File,
-    setPreview: (value: string) => void
-  ) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === "string") {
-        setPreview(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
   const validateImageFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
@@ -85,6 +99,86 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
     return true;
   };
 
+  const closeCropper = () => {
+    setCropOpen(false);
+    setCropTarget(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+
+    if (cropSourceUrl) {
+      URL.revokeObjectURL(cropSourceUrl);
+    }
+    setCropSourceUrl(null);
+    setCropSourceFile(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (cropSourceUrl) URL.revokeObjectURL(cropSourceUrl);
+    };
+  }, [cropSourceUrl]);
+
+  const createImage = (url: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener("load", () => resolve(image));
+      image.addEventListener("error", (error) => reject(error));
+      image.setAttribute("crossOrigin", "anonymous");
+      image.src = url;
+    });
+
+  const getCroppedBlob = async (imageSrc: string, area: Area) => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.floor(area.width));
+    canvas.height = Math.max(1, Math.floor(area.height));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas context not available");
+
+    ctx.drawImage(
+      image,
+      area.x,
+      area.y,
+      area.width,
+      area.height,
+      0,
+      0,
+      area.width,
+      area.height
+    );
+
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Failed to crop image"));
+            return;
+          }
+          resolve(blob);
+        },
+        "image/jpeg",
+        0.92
+      );
+    });
+  };
+
+  const openCropperForFile = (
+    target: "avatar" | "cover",
+    file: File,
+    input: HTMLInputElement
+  ) => {
+    const url = URL.createObjectURL(file);
+    setCropTarget(target);
+    setCropSourceFile(file);
+    setCropSourceUrl(url);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setCropOpen(true);
+    input.value = "";
+  };
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -92,7 +186,7 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
       e.target.value = "";
       return;
     }
-    void setImagePreviewFromFile(file, (value) => setAvatarPreview(value));
+    openCropperForFile("avatar", file, e.target);
   };
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,13 +196,34 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
       e.target.value = "";
       return;
     }
-    void setImagePreviewFromFile(file, (value) => setCoverPreview(value));
+    openCropperForFile("cover", file, e.target);
   };
 
   const handleSubmit = async (formData: FormData) => {
+    const nextFormData = new FormData();
+    for (const [key, value] of formData.entries()) {
+      if (key === "avatar" || key === "cover") continue;
+      nextFormData.append(key, value);
+    }
+
+    const originalAvatar = formData.get("avatar");
+    const originalCover = formData.get("cover");
+
+    if (croppedAvatarFile) {
+      nextFormData.append("avatar", croppedAvatarFile);
+    } else if (originalAvatar instanceof File && originalAvatar.size > 0) {
+      nextFormData.append("avatar", originalAvatar);
+    }
+
+    if (croppedCoverFile) {
+      nextFormData.append("cover", croppedCoverFile);
+    } else if (originalCover instanceof File && originalCover.size > 0) {
+      nextFormData.append("cover", originalCover);
+    }
+
     startTransition(async () => {
       try {
-        await updatePreferences(formData);
+        await updatePreferences(nextFormData);
         toast.success("Preferences updated successfully");
       } catch (error) {
         toast.error("Failed to update preferences");
@@ -116,34 +231,63 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
     });
   };
 
+  const fadeUp = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+  };
+
+  const softHover = {
+    whileHover: { scale: 1.01 },
+    whileTap: { scale: 0.99 },
+  };
+
   return (
-    <form action={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+    <motion.form
+      action={handleSubmit}
+      className="max-w-4xl mx-auto space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
       <fieldset
         disabled={isPending}
         aria-busy={isPending}
         className="grid gap-8 md:grid-cols-[1fr_320px] disabled:opacity-70"
       >
         <div className="md:col-span-2 flex items-center justify-end">
-          <Button type="submit" disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isPending ? "Saving Changes..." : "Save Changes"}
-          </Button>
+          <motion.div {...softHover}>
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending ? "Saving Changes..." : "Save Changes"}
+            </Button>
+          </motion.div>
         </div>
         <div className="space-y-6">
           {/* Profile & Cover Section */}
-          <Card>
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <Card>
             <CardContent className="space-y-6">
               {/* Cover Image */}
               <div className="space-y-2">
                 <Label>Cover Image</Label>
-                <div className="relative group rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 focus-within:border-primary/50 transition-colors">
-                  <div className="aspect-3/1 w-full bg-muted relative">
+                <motion.div
+                  className="relative group rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 focus-within:border-primary/50 transition-colors"
+                  whileHover={{ scale: 1.005 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <div className="aspect-20/9 w-full bg-muted relative">
                     {coverPreview ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <motion.img
                         src={coverPreview}
                         alt="Cover"
                         className="w-full h-full object-cover"
+                        initial={{ opacity: 0.6 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -169,25 +313,32 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
                     onChange={handleCoverChange}
                     aria-describedby="cover-help"
                   />
-                </div>
+                </motion.div>
                 <p className="text-xs text-muted-foreground">
-                  Recommended: wide image (3:1). PNG/JPG.
+                  Cropped to 20:9. PNG/JPG.
                 </p>
                 <p id="cover-help" className="sr-only">
-                  Upload a cover image (image file, up to 2MB).
+                  Upload a cover image (image file, up to 6MB).
                 </p>
               </div>
 
               {/* Avatar */}
               <div className="flex items-center gap-6">
-                <div className="relative group">
+                <motion.div
+                  className="relative group"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.15 }}
+                >
                   <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-sm bg-muted relative">
                     {avatarPreview ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <motion.img
                         src={avatarPreview}
                         alt="Avatar"
                         className="w-full h-full object-cover"
+                        initial={{ opacity: 0.6 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -212,22 +363,27 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
                     onChange={handleAvatarChange}
                     aria-describedby="avatar-help"
                   />
-                </div>
+                </motion.div>
                 <div className="space-y-1">
                   <h3 className="font-medium">Profile Picture</h3>
                   <p className="text-sm text-muted-foreground">
                     PNG, JPG or GIF. Max 6MB.
                   </p>
                   <p id="avatar-help" className="sr-only">
-                    Upload a profile image (image file, up to 2MB).
+                    Upload a profile image (image file, up to 6MB).
                   </p>
                 </div>
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </motion.div>
 
           {/* Social Links Section */}
-          <Card>
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.3, ease: "easeOut", delay: 0.05 }}
+          >
+            <Card>
             <CardHeader>
               <CardTitle>Social Links</CardTitle>
               <CardDescription>Add usernames or profile URLs.</CardDescription>
@@ -301,11 +457,17 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
                 </div>
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Preferences Sidebar */}
-        <div className="space-y-6 md:sticky md:top-24 self-start">
+        <motion.div
+          className="space-y-6 md:sticky md:top-24 self-start"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut", delay: 0.1 }}
+        >
           <Card>
             <CardHeader>
               <CardTitle>Preferences</CardTitle>
@@ -359,7 +521,11 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
                 ] as const
               ).map((item, index, array) => (
                 <div key={item.key} className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <motion.div
+                    className="flex items-start justify-between gap-4 rounded-md"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}
+                    transition={{ duration: 0.15 }}
+                  >
                     <div className="flex flex-col space-y-1">
                       <Label
                         htmlFor={item.key}
@@ -378,7 +544,7 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
                         (preferences as any)[item.key] ?? item.default
                       }
                     />
-                  </div>
+                  </motion.div>
 
                   {index < array.length - 1 ? <Separator /> : null}
                 </div>
@@ -386,17 +552,124 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
             </CardContent>
 
             <CardFooter className="flex flex-col gap-3">
-              <Button type="submit" disabled={isPending} className="w-full">
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending ? "Saving Changes..." : "Save Changes"}
-              </Button>
+              <motion.div {...softHover} className="w-full">
+                <Button type="submit" disabled={isPending} className="w-full">
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isPending ? "Saving Changes..." : "Save Changes"}
+                </Button>
+              </motion.div>
               <p className="text-xs text-muted-foreground text-center">
                 Changes apply to your dashboard experience.
               </p>
             </CardFooter>
           </Card>
-        </div>
+        </motion.div>
       </fieldset>
-    </form>
+
+      <Dialog
+        open={cropOpen}
+        onOpenChange={(open) => (!open ? closeCropper() : null)}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {cropTarget === "cover"
+                ? "Crop cover (20:9)"
+                : "Crop profile photo (1:1)"}
+            </DialogTitle>
+            <DialogDescription>
+              Drag to reposition and use the zoom slider to fit.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="relative h-[360px] w-full overflow-hidden rounded-md bg-muted">
+              {cropSourceUrl ? (
+                <Cropper
+                  image={cropSourceUrl}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={cropAspect}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={(_, areaPixels) =>
+                    setCroppedAreaPixels(areaPixels)
+                  }
+                  cropShape={cropTarget === "avatar" ? "round" : "rect"}
+                  showGrid={cropTarget !== "avatar"}
+                />
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="crop-zoom">Zoom</Label>
+                <span className="text-xs text-muted-foreground">
+                  {zoom.toFixed(2)}x
+                </span>
+              </div>
+              <input
+                id="crop-zoom"
+                type="range"
+                min={1}
+                max={3}
+                step={0.01}
+                value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={closeCropper}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={async () => {
+                try {
+                  if (!cropTarget || !cropSourceUrl || !croppedAreaPixels) {
+                    toast.error("Please finish cropping first");
+                    return;
+                  }
+
+                  const blob = await getCroppedBlob(
+                    cropSourceUrl,
+                    croppedAreaPixels
+                  );
+                  const baseName =
+                    cropSourceFile?.name?.replace(/\.[^/.]+$/, "") ||
+                    cropTarget;
+                  const file = new File([blob], `${baseName}.jpg`, {
+                    type: "image/jpeg",
+                  });
+
+                  const previewUrl = URL.createObjectURL(file);
+                  if (cropTarget === "avatar") {
+                    if (avatarPreview?.startsWith("blob:"))
+                      URL.revokeObjectURL(avatarPreview);
+                    setAvatarPreview(previewUrl);
+                    setCroppedAvatarFile(file);
+                  } else {
+                    if (coverPreview?.startsWith("blob:"))
+                      URL.revokeObjectURL(coverPreview);
+                    setCoverPreview(previewUrl);
+                    setCroppedCoverFile(file);
+                  }
+
+                  closeCropper();
+                } catch (e) {
+                  console.error(e);
+                  toast.error("Failed to crop image");
+                }
+              }}
+            >
+              Apply crop
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </motion.form>
   );
 }
