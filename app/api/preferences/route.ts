@@ -2,10 +2,17 @@ import prisma from "@/lib/prisma/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 function addCorsHeaders(response: NextResponse, origin: string | null) {
-  if (origin && /.*\.intra\..*/.test(origin)) {
+  // Allow requests from 42 intra domains
+  if (
+    origin &&
+    (/\.intra\.42\.fr$/.test(origin) || origin.includes("intra.42.fr"))
+  ) {
     response.headers.set("Access-Control-Allow-Origin", origin);
     response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Authorization, Content-Type");
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Authorization, Content-Type"
+    );
   }
   return response;
 }
