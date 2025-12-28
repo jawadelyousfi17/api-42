@@ -269,112 +269,112 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <Card>
-            <CardContent className="space-y-6">
-              {/* Cover Image */}
-              <div className="space-y-2">
-                <Label>Cover Image</Label>
-                <motion.div
-                  className="relative group rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 focus-within:border-primary/50 transition-colors"
-                  whileHover={{ scale: 1.005 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <div className="aspect-20/9 w-full bg-muted relative">
-                    {coverPreview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <motion.img
-                        src={coverPreview}
-                        alt="Cover"
-                        className="w-full h-full object-cover"
-                        initial={{ opacity: 0.6 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">
-                        <ImageIcon className="w-8 h-8" />
+              <CardContent className="space-y-6">
+                {/* Cover Image */}
+                <div className="space-y-2">
+                  <Label>Cover Image</Label>
+                  <motion.div
+                    className="relative group rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 focus-within:border-primary/50 transition-colors"
+                    whileHover={{ scale: 1.005 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="aspect-20/9 w-full bg-muted relative">
+                      {coverPreview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <motion.img
+                          src={coverPreview}
+                          alt="Cover"
+                          className="w-full h-full object-cover"
+                          initial={{ opacity: 0.6 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                          <ImageIcon className="w-8 h-8" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center justify-center">
+                        <Label
+                          htmlFor="cover-upload"
+                          className="cursor-pointer inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-primary-foreground text-sm font-medium shadow-sm"
+                        >
+                          <Upload className="w-4 h-4" />
+                          Change Cover
+                        </Label>
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center justify-center">
-                      <Label
-                        htmlFor="cover-upload"
-                        className="cursor-pointer inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-primary-foreground text-sm font-medium shadow-sm"
-                      >
-                        <Upload className="w-4 h-4" />
-                        Change Cover
-                      </Label>
                     </div>
-                  </div>
-                  <input
-                    id="cover-upload"
-                    name="cover"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleCoverChange}
-                    aria-describedby="cover-help"
-                  />
-                </motion.div>
-                <p className="text-xs text-muted-foreground">
-                  Cropped to 20:9. PNG/JPG.
-                </p>
-                <p id="cover-help" className="sr-only">
-                  Upload a cover image (image file, up to 6MB).
-                </p>
-              </div>
-
-              {/* Avatar */}
-              <div className="flex items-center gap-6">
-                <motion.div
-                  className="relative group"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-sm bg-muted relative">
-                    {avatarPreview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <motion.img
-                        src={avatarPreview}
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                        initial={{ opacity: 0.6 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">
-                        <User className="w-8 h-8" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center justify-center rounded-full">
-                      <Label
-                        htmlFor="avatar-upload"
-                        className="cursor-pointer inline-flex items-center justify-center rounded-md bg-primary p-2 text-primary-foreground shadow-sm"
-                      >
-                        <Upload className="w-4 h-4" />
-                      </Label>
-                    </div>
-                  </div>
-                  <input
-                    id="avatar-upload"
-                    name="avatar"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarChange}
-                    aria-describedby="avatar-help"
-                  />
-                </motion.div>
-                <div className="space-y-1">
-                  <h3 className="font-medium">Profile Picture</h3>
-                  <p className="text-sm text-muted-foreground">
-                    PNG, JPG or GIF. Max 6MB.
+                    <input
+                      id="cover-upload"
+                      name="cover"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleCoverChange}
+                      aria-describedby="cover-help"
+                    />
+                  </motion.div>
+                  <p className="text-xs text-muted-foreground">
+                    Cropped to 20:9. PNG/JPG.
                   </p>
-                  <p id="avatar-help" className="sr-only">
-                    Upload a profile image (image file, up to 6MB).
+                  <p id="cover-help" className="sr-only">
+                    Upload a cover image (image file, up to 6MB).
                   </p>
                 </div>
-              </div>
-            </CardContent>
+
+                {/* Avatar */}
+                <div className="flex items-center gap-6">
+                  <motion.div
+                    className="relative group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-sm bg-muted relative">
+                      {avatarPreview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <motion.img
+                          src={avatarPreview}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                          initial={{ opacity: 0.6 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                          <User className="w-8 h-8" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                        <Label
+                          htmlFor="avatar-upload"
+                          className="cursor-pointer inline-flex items-center justify-center rounded-md bg-primary p-2 text-primary-foreground shadow-sm"
+                        >
+                          <Upload className="w-4 h-4" />
+                        </Label>
+                      </div>
+                    </div>
+                    <input
+                      id="avatar-upload"
+                      name="avatar"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      aria-describedby="avatar-help"
+                    />
+                  </motion.div>
+                  <div className="space-y-1">
+                    <h3 className="font-medium">Profile Picture</h3>
+                    <p className="text-sm text-muted-foreground">
+                      PNG, JPG or GIF. Max 6MB.
+                    </p>
+                    <p id="avatar-help" className="sr-only">
+                      Upload a profile image (image file, up to 6MB).
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           </motion.div>
 
@@ -384,79 +384,81 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
             transition={{ duration: 0.3, ease: "easeOut", delay: 0.05 }}
           >
             <Card>
-            <CardHeader>
-              <CardTitle>Social Links</CardTitle>
-              <CardDescription>Add usernames or profile URLs.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="github">GitHub</Label>
-                <div className="relative">
-                  <Github className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="github"
-                    name="github"
-                    defaultValue={socialLinks.github || ""}
-                    placeholder="username"
-                    className="pl-9"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
+              <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+                <CardDescription>
+                  Add usernames or profile URLs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="github">GitHub</Label>
+                  <div className="relative">
+                    <Github className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="github"
+                      name="github"
+                      defaultValue={socialLinks.github || ""}
+                      placeholder="username"
+                      className="pl-9"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="linkedin">LinkedIn</Label>
-                <div className="relative">
-                  <Linkedin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="linkedin"
-                    name="linkedin"
-                    defaultValue={socialLinks.linkedin || ""}
-                    placeholder="username"
-                    className="pl-9"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin">LinkedIn</Label>
+                  <div className="relative">
+                    <Linkedin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="linkedin"
+                      name="linkedin"
+                      defaultValue={socialLinks.linkedin || ""}
+                      placeholder="username"
+                      className="pl-9"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="twitter">Twitter</Label>
-                <div className="relative">
-                  <Twitter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="twitter"
-                    name="twitter"
-                    defaultValue={socialLinks.twitter || ""}
-                    placeholder="username"
-                    className="pl-9"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="twitter">Twitter</Label>
+                  <div className="relative">
+                    <Twitter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="twitter"
+                      name="twitter"
+                      defaultValue={socialLinks.twitter || ""}
+                      placeholder="username"
+                      className="pl-9"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="instagram">Instagram</Label>
-                <div className="relative">
-                  <Instagram className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="instagram"
-                    name="instagram"
-                    defaultValue={socialLinks.instagram || ""}
-                    placeholder="username"
-                    className="pl-9"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <div className="relative">
+                    <Instagram className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="instagram"
+                      name="instagram"
+                      defaultValue={socialLinks.instagram || ""}
+                      placeholder="username"
+                      className="pl-9"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
             </Card>
           </motion.div>
         </div>
@@ -554,7 +556,9 @@ export default function PreferencesForm({ user }: PreferencesFormProps) {
             <CardFooter className="flex flex-col gap-3">
               <motion.div {...softHover} className="w-full">
                 <Button type="submit" disabled={isPending} className="w-full">
-                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {isPending ? "Saving Changes..." : "Save Changes"}
                 </Button>
               </motion.div>
