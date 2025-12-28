@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String          @id @default(uuid())
+  login           String          @unique
+  email           String          @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  image           String?
+  name            String?
+  campus          Campus
+  role            Role
+  emailVerified   DateTime?
+  isEmailVerified Boolean         @default(false)
+  accounts        Account[]
+  Authenticator   Authenticator[]
+
+  sessions Session[]
+  bookings Booking[]
+}
+
+model Gym {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  capacity    Int
+  bookings    Booking[]
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  userId    String
+  gymId     String
+  date      DateTime @db.Date
+  startTime DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gym  Gym  @relation(fields: [gymId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}
+
+model Preferences {
+  id                    String    @id @default(uuid())
+  changeProfile         Boolean   @default(true)
+  changeCover           Boolean   @default(true)
+  showQuranInFullScreen Boolean   @default(false)
+  showQuranWidget       Boolean   @default(true)
+  showRanking           Boolean   @default(true)
+  showPomodor           Boolean   @default(true)
+  showNotes             Boolean   @default(true)
+  user                  IntraUser @relation(fields: [intraUserId], references: [id])
+  intraUserId           String
+}
+
+model Update {
+  id      String  @id @default(uuid())
+  message String?
+}
+
+model IntraUser {
+  id          String        @id @default(uuid())
+  avatar      String
+  login       String        @unique
+  level       Float
+  promo       Int
+  campusId    Int
+  name        String
+  rank        Int           @default(0)
+  cover       String?
+  socialLinks String?
+  preferences Preferences[]
+}
+
+model Token {
+  id           String   @id @default(uuid())
+  acessToken   String
+  refreshToken String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  active    Boolean
+  updatedAt DateTime @updatedAt
+}
+
+enum Campus {
+  KHOURIBGA
+  BEN_GUERIR
+  RABAT
+  TETOUANE
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+  STAFF
+}
