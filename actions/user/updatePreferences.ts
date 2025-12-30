@@ -11,7 +11,6 @@ import { auth } from "@/lib/auth/auth-provider";
 import prisma from "@/lib/prisma/prisma";
 import { revalidatePath } from "next/cache";
 import { uploadAvatar } from "../file/imageUpload";
-import DOMPurify from "isomorphic-dompurify";
 
 export async function updatePreferences(formData: FormData) {
   const session = await auth();
@@ -61,10 +60,10 @@ export async function updatePreferences(formData: FormData) {
 
   const socialLinks = JSON.stringify({
     // github: DOMPurify.sanitize(github),
-    linkedin: DOMPurify.sanitize(linkedin),
-    github: DOMPurify.sanitize(github),
-    twitter: DOMPurify.sanitize(twitter),
-    instagram: DOMPurify.sanitize(instagram),
+    linkedin,
+    github,
+    twitter,
+    instagram,
   });
 
   const changeProfile = formData.get("changeProfile") === "on";
