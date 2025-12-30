@@ -3,6 +3,7 @@
 function isValidUsername(username: string): boolean {
   // Only allow a-z, A-Z, 0-9, _, -, .
   // Disallow <, >, and any other special characters
+  if (username.trim().length === 0) return true;
   return /^[a-zA-Z0-9_.-]+$/.test(username);
 }
 
