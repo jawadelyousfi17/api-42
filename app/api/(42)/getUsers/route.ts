@@ -67,13 +67,17 @@ export async function GET(request: NextRequest) {
       });
       syncStudents(15, TOKEN)
         .then(() => syncStudents(55, TOKEN))
-        .then(() => syncStudents(16, TOKEN))
-        .then(() => syncStudents(75, TOKEN))
+        // .then(() => syncStudents(16, TOKEN))
+        // .then(() => syncStudents(75, TOKEN))
         .finally(() => {
-          prisma.task.update({
-            where: { id: "1" },
-            data: { active: false },
-          });
+          setTimeout(
+            async () =>
+              await prisma.task.update({
+                where: { id: "1" },
+                data: { active: false },
+              }),
+            1000
+          );
         });
     }
   }
