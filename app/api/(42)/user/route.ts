@@ -14,6 +14,31 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const authHeader = request.headers.get("authorization");
+  const TOKEN =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : undefined;
+
+  // check the token
+  if (!TOKEN)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const response = await fetch("https://api.intra.42.fr/v2/users/195219", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  } catch (error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const user = await prisma.intraUser.findUnique({
       where: { login: login },

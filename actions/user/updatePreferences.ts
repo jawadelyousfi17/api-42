@@ -1,10 +1,16 @@
 "use server";
 
+function isValidUsername(username: string): boolean {
+  // Only allow a-z, A-Z, 0-9, _, -, .
+  // Disallow <, >, and any other special characters
+  return /^[a-zA-Z0-9_.-]+$/.test(username);
+}
+
 import { auth } from "@/lib/auth/auth-provider";
 import prisma from "@/lib/prisma/prisma";
 import { revalidatePath } from "next/cache";
-
 import { uploadAvatar } from "../file/imageUpload";
+import DOMPurify from "isomorphic-dompurify";
 
 export async function updatePreferences(formData: FormData) {
   const session = await auth();
@@ -43,11 +49,21 @@ export async function updatePreferences(formData: FormData) {
   const twitter = formData.get("twitter") as string;
   const instagram = formData.get("instagram") as string;
 
+  if (
+    !isValidUsername(instagram) ||
+    !isValidUsername(twitter) ||
+    !isValidUsername(linkedin) ||
+    !isValidUsername(github)
+  ) {
+    throw new Error("Invalid username");
+  }
+
   const socialLinks = JSON.stringify({
-    github,
-    linkedin,
-    twitter,
-    instagram,
+    // github: DOMPurify.sanitize(github),
+    linkedin: DOMPurify.sanitize(linkedin),
+    github: DOMPurify.sanitize(github),
+    twitter: DOMPurify.sanitize(twitter),
+    instagram: DOMPurify.sanitize(instagram),
   });
 
   const changeProfile = formData.get("changeProfile") === "on";
