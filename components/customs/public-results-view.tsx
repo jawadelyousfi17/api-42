@@ -52,18 +52,21 @@ export function PublicResultsView({ poll }: PublicResultsViewProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-10">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge variant={poll.active ? "default" : "secondary"}>
-            {poll.active ? "Live" : "Final Results"}
-          </Badge>
-          <span className="text-xs text-muted-foreground font-mono">
-            #{poll.shortId}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Users className="size-4" />
-          {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold tracking-tight">{poll.name}</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge variant={poll.active ? "default" : "secondary"}>
+              {poll.active ? "Live" : "Final Results"}
+            </Badge>
+            <span className="text-xs text-muted-foreground font-mono">
+              #{poll.shortId}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Users className="size-4" />
+            {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+          </div>
         </div>
       </div>
 

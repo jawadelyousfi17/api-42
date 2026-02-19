@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { signOut } from "next-auth/react";
+import { ModeToggle } from "@/components/theme-toggle";
 
 // const navLinks = [];
 
@@ -58,16 +59,18 @@ const Navbar = ({ user, intraUser }: NavbarProps) => {
           <div>
             <ul className="flex gap-8">
               <li>
-                <Link className="flex gap-1" href={"/create-poll"}><Plus/>Create</Link>
+                <Link className="flex gap-1" href={"/create-poll"}>
+                  <Plus />
+                  Create
+                </Link>
               </li>
               <li>
                 <Link href={"/all-polls"}>My polls</Link>
               </li>
             </ul>
           </div>
-          <div className="hidden md:flex items-center gap-2"></div>
-
-          <div>
+          <div className="flex items-center gap-4">
+            <ModeToggle />
             <Popover>
               <PopoverTrigger asChild>
                 <Button

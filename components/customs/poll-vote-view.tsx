@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import toast from "react-hot-toast";
-import { CheckCircle2, Users, Lock } from "lucide-react";
+import {
+  ArrowLeft,
+  MoreHorizontal,
+  Share2,
+  Loader2,
+  Check,
+} from "lucide-react";
+import Image from "next/image";
 
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { voteOnPoll } from "@/actions/poll/voteOnPoll";
-import { PollOptionPosition } from "@/lib/generated/prisma";
 import type { getPollByShortId } from "@/actions/poll/getPollByShortId";
 
 type Poll = NonNullable<Awaited<ReturnType<typeof getPollByShortId>>> & {
@@ -28,234 +32,222 @@ interface PollVoteViewProps {
   currentUser: CurrentUser;
 }
 
-export function PollVoteView({
-  poll: initialPoll,
-  currentUser,
-}: PollVoteViewProps) {
-  const [poll, setPoll] = useState(initialPoll);
-  const [voting, setVoting] = useState(false);
+export function PollVoteView({ poll, currentUser }: PollVoteViewProps) {
+  const [isPending, startTransition] = useTransition();
+  const [userVote, setUserVote] = useState<"A" | "B" | null>(() => {
+    const existingVote = poll.votes.find((v) => v.user?.id === currentUser.id);
+    return existingVote?.option.position === "A"
+      ? "A"
+      : existingVote?.option.position === "B"
+        ? "B"
+        : null;
+  });
 
-  const optionA = poll.options[0];
-  const optionB = poll.options[1];
+  const optionA = poll.options.find((o) => o.position === "A");
+  const optionB = poll.options.find((o) => o.position === "B");
 
-  const myVote = poll.votes.find((v) => v.user?.id === currentUser.id);
-  const myPosition = myVote?.option.position ?? null;
+  if (!optionA || !optionB) {
+    return <div className="p-4 text-center">Invalid poll data</div>;
+  }
 
-  const totalVotes = poll.votes.length;
-  const votesA = poll.votes.filter((v) => v.option.position === "A").length;
-  const votesB = poll.votes.filter((v) => v.option.position === "B").length;
-  const pctA = totalVotes > 0 ? Math.round((votesA / totalVotes) * 100) : 0;
-  const pctB = totalVotes > 0 ? Math.round((votesB / totalVotes) * 100) : 0;
+  const handleVote = (position: "A" | "B", optionId: string) => {
+    if (!poll.active || isPending) return;
 
-  const handleVote = async (position: PollOptionPosition) => {
-    if (!poll.active || voting) return;
+    // Optimistic update
+    const previousVote = userVote;
+    setUserVote(position);
 
-    // optimistic update
-    const targetOption = poll.options.find((o) => o.position === position)!;
-    setPoll((prev) => {
-      const withoutMyVote = prev.votes.filter(
-        (v) => v.user?.id !== currentUser.id,
-      );
-      return {
-        ...prev,
-        votes: [
-          ...withoutMyVote,
-          {
-            id: "optimistic",
-            pollId: prev.id,
-            optionId: targetOption.id,
-            userId: currentUser.id,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            option: { id: targetOption.id, position },
-            user: {
-              id: currentUser.id,
-              login: currentUser.login,
-              name: currentUser.name ?? null,
-              image: currentUser.image ?? null,
-            },
-          },
-        ],
-      };
-    });
-
-    setVoting(true);
-    try {
-      const res = await voteOnPoll({ shortId: poll.shortId, position });
-      if ("error" in res) {
-        toast.error(res.error ?? "Failed to vote");
-        setPoll(initialPoll); // rollback
+    startTransition(async () => {
+      try {
+        const res = await voteOnPoll({ shortId: poll.shortId, position });
+        if ("error" in res) {
+          toast.error(res.error ?? "Failed to vote");
+          setUserVote(previousVote);
+        } else {
+          toast.success("Vote recorded!");
+        }
+      } catch {
+        toast.error("Something went wrong");
+        setUserVote(previousVote);
       }
-    } catch {
-      toast.error("Failed to vote");
-      setPoll(initialPoll);
-    } finally {
-      setVoting(false);
+    });
+  };
+
+  const handleShare = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
     }
   };
 
-  const votersA = poll.votes.filter((v) => v.option.position === "A");
-  const votersB = poll.votes.filter((v) => v.option.position === "B");
+  const voteCount = poll.votes.length;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge variant={poll.active ? "default" : "secondary"}>
-            {poll.active ? "Active" : "Closed"}
-          </Badge>
-          {!poll.active && (
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <Lock className="size-3" /> Voting is disabled
+    <div className="font-display min-h-screen flex flex-col antialiased pb-24  selection:bg-[#8c2bee] selection:text-white justify-center items-center">
+      <div className="w-full  bg-transparent mx-auto relative min-h-screen flex flex-col">
+        {/* Header */}
+
+        {/* Main Content */}
+        <main className="flex-1 px-4 pt-2 pb-6 flex flex-col gap-6">
+          {/* Question */}
+          <div className="text-center space-y-2 py-2">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#8c2bee]/20 text-[#8c2bee] text-xs font-bold uppercase tracking-wider">
+              {poll.active ? "Active Poll" : "Poll Ended"}
             </span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Users className="size-4" />
-          {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
-        </div>
-      </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">
+              {poll.name}
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              {voteCount} Votes
+            </p>
+          </div>
 
-      {/* Options */}
-      <div className="grid grid-cols-2 gap-4">
-        {(
-          [
-            {
-              option: optionA,
-              votes: votesA,
-              pct: pctA,
-              position: "A" as const,
-            },
-            {
-              option: optionB,
-              votes: votesB,
-              pct: pctB,
-              position: "B" as const,
-            },
-          ] as const
-        ).map(({ option, votes, pct, position }) => {
-          const isMyVote = myPosition === position;
-          const canVote = poll.active && !voting;
+          {/* Matchup Cards Area */}
+          <div className="relative w-full">
+            {/* VS Badge */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center justify-center pointer-events-none">
+              <div className="w-12 h-12 bg-[#8c2bee] rounded-full border-4 border-slate-50 dark:border-[#191022] flex items-center justify-center shadow-[0_0_15px_rgba(140,43,238,0.5)]">
+                <span className="text-white font-black text-sm italic">VS</span>
+              </div>
+            </div>
 
-          return (
-            <button
-              key={option.id}
-              type="button"
-              disabled={!canVote}
-              onClick={() => handleVote(position)}
-              className={cn(
-                "cursor-pointer group relative rounded-xl overflow-hidden border-2 transition-all text-left w-full",
-                "disabled:pointer-events-none",
-                isMyVote
-                  ? "border-primary ring-2 ring-primary/30"
-                  : "border-border hover:border-primary/50",
-                !poll.active && "cursor-default",
-              )}
-            >
-              {/* Anonymous player block */}
-              <div className="relative aspect-4/3 w-full bg-muted flex items-center justify-center">
-                <span className="text-4xl font-black text-muted-foreground/30 select-none">
-                  {position === "A" ? "1" : "2"}
-                </span>
-                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="grid grid-cols-2 gap-3 h-[420px]">
+              {/* Player 1 Card (Option A) */}
+              <div className="group relative flex flex-col justify-end h-full rounded-xl overflow-hidden bg-[#2d2438] shadow-lg ring-1 ring-white/10">
+                {/* Image Background */}
+                <div className="absolute inset-0 bg-slate-800">
+                  <Image
+                    src={optionA.cover}
+                    alt={optionA.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    unoptimized
+                  />
+                </div>
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90"></div>
 
-                {/* Your vote badge */}
-                {isMyVote && (
-                  <div className="absolute top-3 right-3 bg-primary text-primary-foreground rounded-full p-1">
-                    <CheckCircle2 className="size-4" />
+                {/* Content */}
+                <div className="relative z-10 p-4 flex flex-col gap-3 items-center text-center">
+                  <div className="flex flex-col">
+                    <h3 className="text-white text-lg font-bold leading-tight">
+                      {optionA.name}
+                    </h3>
+                    <span className="text-white/60 text-xs font-medium">
+                      Option A
+                    </span>
                   </div>
-                )}
-
-                <Badge className="absolute top-3 left-3 text-xs">
-                  {position}
-                </Badge>
-
-                {/* Anonymous label only */}
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="text-white font-semibold text-base leading-tight">
-                    Player {position === "A" ? 1 : 2}
-                  </p>
+                  <button
+                    onClick={() => handleVote("A", optionA.id)}
+                    disabled={isPending || !poll.active}
+                    className={cn(
+                      "w-full transition-all font-bold py-3 rounded-lg text-sm flex items-center justify-center gap-2",
+                      userVote === "A"
+                        ? "bg-[#8c2bee] hover:bg-[#7a25d0] text-white shadow-lg shadow-[#8c2bee]/25 border border-white/10"
+                        : "bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/10",
+                      "active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed",
+                    )}
+                  >
+                    {isPending && userVote === "A" && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    <span>{userVote === "A" ? "Voted" : "Vote"}</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Stats bar */}
-              <div className="p-3 space-y-1.5 bg-card">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    {votes} vote{votes !== 1 ? "s" : ""}
-                  </span>
-                  <span className="font-semibold">{pct}%</span>
+              {/* Player 2 Card (Option B) */}
+              <div className="group relative flex flex-col justify-end h-full rounded-xl overflow-hidden bg-[#2d2438] shadow-lg ring-1 ring-white/10">
+                {/* Image Background */}
+                <div className="absolute inset-0 bg-slate-800">
+                  <Image
+                    src={optionB.cover}
+                    alt={optionB.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    unoptimized
+                  />
                 </div>
-                <Progress value={pct} className="h-2" />
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90"></div>
 
-      {/* Voter list */}
-      {totalVotes > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Who voted
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            {(
-              [
-                { voters: votersA, label: "Player 1", position: "A" },
-                { voters: votersB, label: "Player 2", position: "B" },
-              ] as const
-            ).map(({ voters, label, position }) => (
-              <div key={position} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    {position}
-                  </Badge>
-                  <span className="text-sm font-medium truncate">{label}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {voters.length}
-                  </span>
+                {/* Content */}
+                <div className="relative z-10 p-4 flex flex-col gap-3 items-center text-center">
+                  <div className="flex flex-col">
+                    <h3 className="text-white text-lg font-bold leading-tight">
+                      {optionB.name}
+                    </h3>
+                    <span className="text-white/60 text-xs font-medium">
+                      Option B
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleVote("B", optionB.id)}
+                    disabled={isPending || !poll.active}
+                    className={cn(
+                      "w-full transition-all font-bold py-3 rounded-lg text-sm flex items-center justify-center gap-2",
+                      userVote === "B"
+                        ? "bg-[#8c2bee] hover:bg-[#7a25d0] text-white shadow-lg shadow-[#8c2bee]/25 border border-white/10"
+                        : "bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/10",
+                      "active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed",
+                    )}
+                  >
+                    {isPending && userVote === "B" && (
+                      <Loader2 className="size-4 animate-spin" />
+                    )}
+                    <span>{userVote === "B" ? "Voted" : "Vote"}</span>
+                  </button>
                 </div>
-                <div className="space-y-1.5">
-                  {voters.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      No votes yet
-                    </p>
-                  ) : (
-                    voters.map((vote) => (
-                      <div
-                        key={vote.id}
-                        className="flex items-center gap-2 py-1"
-                      >
-                        <Avatar className="size-7 shrink-0">
-                          <AvatarImage src={vote.user?.image ?? ""} />
-                          <AvatarFallback className="text-xs">
-                            {(vote.user?.login?.[0] ?? "?").toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium leading-none truncate">
-                            {vote.user?.name ?? vote.user?.login ?? "Unknown"}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {vote.user?.login}
-                          </p>
-                        </div>
-                        {vote.user?.id === currentUser.id && (
-                          <Badge className="ml-auto text-[10px] shrink-0">
-                            You
-                          </Badge>
-                        )}
-                      </div>
-                    ))
+              </div>
+            </div>
+          </div>
+
+          {/* Voters Section */}
+          <div className="flex flex-col gap-3 pt-2">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-slate-900 dark:text-white text-base font-bold">
+                Recent Voters
+              </h3>
+              <button className="text-[#8c2bee] text-sm font-semibold hover:text-[#7a25d0]">
+                View all
+              </button>
+            </div>
+            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-2">
+              {/* Stack of Avatars */}
+              {poll.votes.length > 0 ? (
+                <div className="flex -space-x-3 overflow-hidden p-1">
+                  {poll.votes.slice(0, 5).map((vote) => (
+                    <Avatar
+                      key={vote.id}
+                      className="inline-block h-10 w-10 rounded-full ring-2 ring-slate-50 dark:ring-[#191022] object-cover"
+                    >
+                      <AvatarImage src={vote.user?.image ?? ""} />
+                      <AvatarFallback className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
+                        {vote.user?.login?.[0]?.toUpperCase() ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                  {poll.votes.length > 5 && (
+                    <div className="h-10 w-10 rounded-full ring-2 ring-slate-50 dark:ring-[#191022] bg-[#2d2438] flex items-center justify-center text-[10px] font-bold text-slate-300">
+                      +{poll.votes.length - 5}
+                    </div>
                   )}
                 </div>
+              ) : (
+                <p className="text-sm text-slate-500 px-1">
+                  Be the first to vote!
+                </p>
+              )}
+
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                people voted
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
+        </main>
+
+        {/* Sticky Footer */}
+      </div>
     </div>
   );
 }

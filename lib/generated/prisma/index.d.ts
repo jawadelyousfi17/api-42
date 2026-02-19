@@ -3043,6 +3043,7 @@ export namespace Prisma {
   export type PollMinAggregateOutputType = {
     id: string | null
     shortId: string | null
+    name: string | null
     active: boolean | null
     creatorId: string | null
     createdAt: Date | null
@@ -3052,6 +3053,7 @@ export namespace Prisma {
   export type PollMaxAggregateOutputType = {
     id: string | null
     shortId: string | null
+    name: string | null
     active: boolean | null
     creatorId: string | null
     createdAt: Date | null
@@ -3061,6 +3063,7 @@ export namespace Prisma {
   export type PollCountAggregateOutputType = {
     id: number
     shortId: number
+    name: number
     active: number
     creatorId: number
     createdAt: number
@@ -3072,6 +3075,7 @@ export namespace Prisma {
   export type PollMinAggregateInputType = {
     id?: true
     shortId?: true
+    name?: true
     active?: true
     creatorId?: true
     createdAt?: true
@@ -3081,6 +3085,7 @@ export namespace Prisma {
   export type PollMaxAggregateInputType = {
     id?: true
     shortId?: true
+    name?: true
     active?: true
     creatorId?: true
     createdAt?: true
@@ -3090,6 +3095,7 @@ export namespace Prisma {
   export type PollCountAggregateInputType = {
     id?: true
     shortId?: true
+    name?: true
     active?: true
     creatorId?: true
     createdAt?: true
@@ -3172,6 +3178,7 @@ export namespace Prisma {
   export type PollGroupByOutputType = {
     id: string
     shortId: string
+    name: string
     active: boolean
     creatorId: string
     createdAt: Date
@@ -3198,6 +3205,7 @@ export namespace Prisma {
   export type PollSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     shortId?: boolean
+    name?: boolean
     active?: boolean
     creatorId?: boolean
     createdAt?: boolean
@@ -3211,6 +3219,7 @@ export namespace Prisma {
   export type PollSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     shortId?: boolean
+    name?: boolean
     active?: boolean
     creatorId?: boolean
     createdAt?: boolean
@@ -3221,6 +3230,7 @@ export namespace Prisma {
   export type PollSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     shortId?: boolean
+    name?: boolean
     active?: boolean
     creatorId?: boolean
     createdAt?: boolean
@@ -3231,13 +3241,14 @@ export namespace Prisma {
   export type PollSelectScalar = {
     id?: boolean
     shortId?: boolean
+    name?: boolean
     active?: boolean
     creatorId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type PollOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shortId" | "active" | "creatorId" | "createdAt" | "updatedAt", ExtArgs["result"]["poll"]>
+  export type PollOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "shortId" | "name" | "active" | "creatorId" | "createdAt" | "updatedAt", ExtArgs["result"]["poll"]>
   export type PollInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     creator?: boolean | UserDefaultArgs<ExtArgs>
     options?: boolean | Poll$optionsArgs<ExtArgs>
@@ -3261,6 +3272,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       shortId: string
+      name: string
       active: boolean
       creatorId: string
       createdAt: Date
@@ -3693,6 +3705,7 @@ export namespace Prisma {
   interface PollFieldRefs {
     readonly id: FieldRef<"Poll", 'String'>
     readonly shortId: FieldRef<"Poll", 'String'>
+    readonly name: FieldRef<"Poll", 'String'>
     readonly active: FieldRef<"Poll", 'Boolean'>
     readonly creatorId: FieldRef<"Poll", 'String'>
     readonly createdAt: FieldRef<"Poll", 'DateTime'>
@@ -11756,6 +11769,7 @@ export namespace Prisma {
   export const PollScalarFieldEnum: {
     id: 'id',
     shortId: 'shortId',
+    name: 'name',
     active: 'active',
     creatorId: 'creatorId',
     createdAt: 'createdAt',
@@ -12095,6 +12109,7 @@ export namespace Prisma {
     NOT?: PollWhereInput | PollWhereInput[]
     id?: StringFilter<"Poll"> | string
     shortId?: StringFilter<"Poll"> | string
+    name?: StringFilter<"Poll"> | string
     active?: BoolFilter<"Poll"> | boolean
     creatorId?: StringFilter<"Poll"> | string
     createdAt?: DateTimeFilter<"Poll"> | Date | string
@@ -12107,6 +12122,7 @@ export namespace Prisma {
   export type PollOrderByWithRelationInput = {
     id?: SortOrder
     shortId?: SortOrder
+    name?: SortOrder
     active?: SortOrder
     creatorId?: SortOrder
     createdAt?: SortOrder
@@ -12122,6 +12138,7 @@ export namespace Prisma {
     AND?: PollWhereInput | PollWhereInput[]
     OR?: PollWhereInput[]
     NOT?: PollWhereInput | PollWhereInput[]
+    name?: StringFilter<"Poll"> | string
     active?: BoolFilter<"Poll"> | boolean
     creatorId?: StringFilter<"Poll"> | string
     createdAt?: DateTimeFilter<"Poll"> | Date | string
@@ -12134,6 +12151,7 @@ export namespace Prisma {
   export type PollOrderByWithAggregationInput = {
     id?: SortOrder
     shortId?: SortOrder
+    name?: SortOrder
     active?: SortOrder
     creatorId?: SortOrder
     createdAt?: SortOrder
@@ -12149,6 +12167,7 @@ export namespace Prisma {
     NOT?: PollScalarWhereWithAggregatesInput | PollScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Poll"> | string
     shortId?: StringWithAggregatesFilter<"Poll"> | string
+    name?: StringWithAggregatesFilter<"Poll"> | string
     active?: BoolWithAggregatesFilter<"Poll"> | boolean
     creatorId?: StringWithAggregatesFilter<"Poll"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Poll"> | Date | string
@@ -12738,6 +12757,7 @@ export namespace Prisma {
   export type PollCreateInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -12749,6 +12769,7 @@ export namespace Prisma {
   export type PollUncheckedCreateInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     creatorId: string
     createdAt?: Date | string
@@ -12760,6 +12781,7 @@ export namespace Prisma {
   export type PollUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12771,6 +12793,7 @@ export namespace Prisma {
   export type PollUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12782,6 +12805,7 @@ export namespace Prisma {
   export type PollCreateManyInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     creatorId: string
     createdAt?: Date | string
@@ -12791,6 +12815,7 @@ export namespace Prisma {
   export type PollUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12799,6 +12824,7 @@ export namespace Prisma {
   export type PollUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13563,6 +13589,7 @@ export namespace Prisma {
   export type PollCountOrderByAggregateInput = {
     id?: SortOrder
     shortId?: SortOrder
+    name?: SortOrder
     active?: SortOrder
     creatorId?: SortOrder
     createdAt?: SortOrder
@@ -13572,6 +13599,7 @@ export namespace Prisma {
   export type PollMaxOrderByAggregateInput = {
     id?: SortOrder
     shortId?: SortOrder
+    name?: SortOrder
     active?: SortOrder
     creatorId?: SortOrder
     createdAt?: SortOrder
@@ -13581,6 +13609,7 @@ export namespace Prisma {
   export type PollMinOrderByAggregateInput = {
     id?: SortOrder
     shortId?: SortOrder
+    name?: SortOrder
     active?: SortOrder
     creatorId?: SortOrder
     createdAt?: SortOrder
@@ -14761,6 +14790,7 @@ export namespace Prisma {
   export type PollCreateWithoutCreatorInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14771,6 +14801,7 @@ export namespace Prisma {
   export type PollUncheckedCreateWithoutCreatorInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14928,6 +14959,7 @@ export namespace Prisma {
     NOT?: PollScalarWhereInput | PollScalarWhereInput[]
     id?: StringFilter<"Poll"> | string
     shortId?: StringFilter<"Poll"> | string
+    name?: StringFilter<"Poll"> | string
     active?: BoolFilter<"Poll"> | boolean
     creatorId?: StringFilter<"Poll"> | string
     createdAt?: DateTimeFilter<"Poll"> | Date | string
@@ -15157,6 +15189,7 @@ export namespace Prisma {
   export type PollCreateWithoutOptionsInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -15167,6 +15200,7 @@ export namespace Prisma {
   export type PollUncheckedCreateWithoutOptionsInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     creatorId: string
     createdAt?: Date | string
@@ -15219,6 +15253,7 @@ export namespace Prisma {
   export type PollUpdateWithoutOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15229,6 +15264,7 @@ export namespace Prisma {
   export type PollUncheckedUpdateWithoutOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15255,6 +15291,7 @@ export namespace Prisma {
   export type PollCreateWithoutVotesInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -15265,6 +15302,7 @@ export namespace Prisma {
   export type PollUncheckedCreateWithoutVotesInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     creatorId: string
     createdAt?: Date | string
@@ -15359,6 +15397,7 @@ export namespace Prisma {
   export type PollUpdateWithoutVotesInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15369,6 +15408,7 @@ export namespace Prisma {
   export type PollUncheckedUpdateWithoutVotesInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     creatorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15755,6 +15795,7 @@ export namespace Prisma {
   export type PollCreateManyCreatorInput = {
     id?: string
     shortId: string
+    name?: string
     active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -15867,6 +15908,7 @@ export namespace Prisma {
   export type PollUpdateWithoutCreatorInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15877,6 +15919,7 @@ export namespace Prisma {
   export type PollUncheckedUpdateWithoutCreatorInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15887,6 +15930,7 @@ export namespace Prisma {
   export type PollUncheckedUpdateManyWithoutCreatorInput = {
     id?: StringFieldUpdateOperationsInput | string
     shortId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

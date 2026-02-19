@@ -19,7 +19,7 @@ export default async function ProtectedLayout({
   return (
     <>
       <Navbar user={session.user} />
-      <main className="px-4">{children}</main>
+      <main className="px-4 max-w-5xl">{children}</main>
     </>
   );
 }

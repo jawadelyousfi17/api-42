@@ -33,6 +33,7 @@ export default function CreatePollForm() {
 
     try {
       const formData = new FormData(event.currentTarget);
+      const name = String(formData.get("name") ?? "").trim();
 
       const optionA = {
         name: String(formData.get("optionA_name") ?? "").trim(),
@@ -46,6 +47,12 @@ export default function CreatePollForm() {
         description: String(formData.get("optionB_description") ?? "").trim(),
       };
 
+      if (!name) {
+        toast.error("Poll name is required");
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!optionA.cover) {
         toast.error("Option A needs a cover image");
         setIsSubmitting(false);
@@ -58,6 +65,7 @@ export default function CreatePollForm() {
       }
 
       const res = await createPoll({
+        name,
         optionA: {
           name: optionA.name,
           cover: optionA.cover,
@@ -101,6 +109,16 @@ export default function CreatePollForm() {
           </CardHeader>
 
           <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Poll Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="E.g. Who is the best football player?"
+                required
+              />
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
                 <div className="text-sm font-medium">Option A</div>

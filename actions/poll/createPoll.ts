@@ -12,14 +12,18 @@ type CreatePollOptionInput = {
 };
 
 export async function createPoll(input: {
+  name: string;
   optionA: CreatePollOptionInput;
   optionB: CreatePollOptionInput;
 }) {
   const userId = await getUserId();
   if (!userId) return { error: "Not authenticated" } as const;
 
-  const optionA = input.optionA;
-  const optionB = input.optionB;
+  const { name, optionA, optionB } = input;
+
+  if (!name) {
+    return { error: "Poll name is required" } as const;
+  }
 
   if (!optionA?.name || !optionA?.cover || !optionB?.name || !optionB?.cover) {
     return { error: "Both options require name and cover" } as const;
@@ -33,6 +37,7 @@ export async function createPoll(input: {
 
     const poll = await prisma.poll.create({
       data: {
+        name,
         shortId,
         creatorId: userId,
         options: {

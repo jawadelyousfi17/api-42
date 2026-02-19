@@ -9,8 +9,10 @@ import {
   Copy,
   Check,
   Users,
-  QrCode,
+  Share2,
   Download,
+  Trash,
+  ExternalLink,
 } from "lucide-react";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 
@@ -32,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { togglePollStatus } from "@/actions/poll/togglePollStatus";
+import { deletePoll } from "@/actions/poll/deletePoll";
 import type { PollWithDetails } from "@/actions/poll/getAllPolls";
 
 interface PollCardProps {
@@ -41,15 +44,17 @@ interface PollCardProps {
 export function PollCard({ poll: initialPoll }: PollCardProps) {
   const [poll, setPoll] = useState(initialPoll);
   const [toggling, setToggling] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [qrOpen, setQrOpen] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [voteLinkCopied, setVoteLinkCopied] = useState(false);
+  const [resultsLinkCopied, setResultsLinkCopied] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
 
-  const pollUrl = `${
+  const baseUrl =
     process.env.NEXT_PUBLIC_HOST ??
-    (typeof window !== "undefined" ? window.location.origin : "")
-  }/poll/${poll.shortId}`;
+    (typeof window !== "undefined" ? window.location.origin : "");
+  const pollUrl = `${baseUrl}/poll/${poll.shortId}`;
+  const resultsUrl = `${baseUrl}/anonymous-results/${poll.shortId}`;
 
   const optionA = poll.options[0];
   const optionB = poll.options[1];
@@ -75,16 +80,40 @@ export function PollCard({ poll: initialPoll }: PollCardProps) {
     }
   };
 
-  const handleCopyId = () => {
-    navigator.clipboard.writeText(poll.shortId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleDelete = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this poll? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await deletePoll(poll.id);
+      if (res && "error" in res) {
+        toast.error(res.error ?? "Something went wrong");
+        return;
+      }
+      toast.success("Poll deleted successfully");
+    } catch (e) {
+      toast.error("Failed to delete poll");
+    } finally {
+      setDeleting(false);
+    }
   };
 
-  const handleCopyLink = () => {
+  const handleCopyVoteLink = () => {
     navigator.clipboard.writeText(pollUrl);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
+    setVoteLinkCopied(true);
+    setTimeout(() => setVoteLinkCopied(false), 2000);
+  };
+
+  const handleCopyResultsLink = () => {
+    navigator.clipboard.writeText(resultsUrl);
+    setResultsLinkCopied(true);
+    setTimeout(() => setResultsLinkCopied(false), 2000);
   };
 
   const handleDownloadQr = () => {
@@ -99,7 +128,9 @@ export function PollCard({ poll: initialPoll }: PollCardProps) {
 
   return (
     <Card className={cn(!poll.active && "opacity-60")}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 space-y-2">
+        <h3 className="font-semibold text-lg leading-tight">{poll.name}</h3>
+
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={poll.active ? "default" : "secondary"}>
@@ -108,24 +139,20 @@ export function PollCard({ poll: initialPoll }: PollCardProps) {
 
             <button
               type="button"
-              onClick={handleCopyId}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
+              onClick={() => window.open(resultsUrl, "_blank")}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              {copied ? (
-                <Check className="size-3 text-green-500" />
-              ) : (
-                <Copy className="size-3" />
-              )}
-              {poll.shortId}
+              <ExternalLink className="size-3" />
+              Open
             </button>
 
             <button
               type="button"
-              onClick={() => setQrOpen(true)}
+              onClick={() => setShareOpen(true)}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <QrCode className="size-3" />
-              QR
+              <Share2 className="size-3" />
+              Share
             </button>
           </div>
 
@@ -228,7 +255,23 @@ export function PollCard({ poll: initialPoll }: PollCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-end pt-3">
+      <CardFooter className="flex justify-between pt-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          onClick={handleDelete}
+          disabled={deleting || toggling}
+        >
+          {deleting ? (
+            <span className="animate-pulse">Deleting…</span>
+          ) : (
+            <>
+              <Trash className="size-4 mr-1.5" />
+              Delete
+            </>
+          )}
+        </Button>
         <Button
           variant={poll.active ? "destructive" : "outline"}
           size="sm"
@@ -249,44 +292,84 @@ export function PollCard({ poll: initialPoll }: PollCardProps) {
         </Button>
       </CardFooter>
 
-      {/* QR Dialog */}
-      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-        <DialogContent className="max-w-xs">
+      {/* Share Dialog */}
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Share poll</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col items-center gap-4">
-            <div ref={qrRef} className="rounded-xl border p-3 bg-white">
-              <QRCodeCanvas value={pollUrl} size={200} />
-            </div>
-            <div className="w-full space-y-1.5">
-              <p className="text-xs text-muted-foreground">Poll link</p>
+          <div className="flex flex-col gap-4">
+            {/* Vote Link */}
+            <div className="w-full space-y-2">
+              <p className="text-sm font-medium">Vote Link</p>
+              <p className="text-xs text-muted-foreground">
+                Share this link for people to vote
+              </p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs bg-muted rounded px-2 py-1.5 truncate">
+                <code className="flex-1 text-xs bg-muted rounded px-3 py-2 truncate">
                   {pollUrl}
                 </code>
                 <Button
                   size="icon"
                   variant="outline"
-                  onClick={handleCopyLink}
-                  title="Copy link"
+                  onClick={handleCopyVoteLink}
+                  title="Copy vote link"
                 >
-                  {linkCopied ? (
-                    <Check className="size-3.5 text-green-500" />
+                  {voteLinkCopied ? (
+                    <Check className="size-4 text-green-500" />
                   ) : (
-                    <Copy className="size-3.5" />
+                    <Copy className="size-4" />
                   )}
                 </Button>
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleDownloadQr}
-            >
-              <Download className="size-4" />
-              Download QR (.png)
-            </Button>
+
+            {/* Anonymous Results Link */}
+            <div className="w-full space-y-2">
+              <p className="text-sm font-medium">Anonymous Results Link</p>
+              <p className="text-xs text-muted-foreground">
+                Share results without revealing voter identities
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-xs bg-muted rounded px-3 py-2 truncate">
+                  {resultsUrl}
+                </code>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={handleCopyResultsLink}
+                  title="Copy results link"
+                >
+                  {resultsLinkCopied ? (
+                    <Check className="size-4 text-green-500" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* QR Code */}
+            <div className="w-full space-y-2">
+              <p className="text-sm font-medium">QR Code (Vote Link)</p>
+              <div className="flex flex-col items-center gap-3">
+                <div
+                  ref={qrRef}
+                  className="rounded-xl border p-3 bg-white dark:bg-slate-50"
+                >
+                  <QRCodeCanvas value={pollUrl} size={180} />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDownloadQr}
+                >
+                  <Download className="size-4" />
+                  Download QR (.png)
+                </Button>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

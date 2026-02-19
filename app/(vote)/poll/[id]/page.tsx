@@ -22,8 +22,6 @@ export default async function PollPage({ params }: PollPageProps) {
   };
 
   return (
-    <div className="container py-10">
       <PollVoteView poll={poll} currentUser={currentUser} />
-    </div>
   );
 }
