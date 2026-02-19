@@ -36,12 +36,12 @@ export function AnonymousResultsView({ poll }: AnonymousResultsViewProps) {
 
   const options = [
     {
-      label: poll.options.find((o) => o.position === "A")?.name ?? "Option A",
+      label: "Player 1",
       votes: votesA,
       position: "A",
     },
     {
-      label: poll.options.find((o) => o.position === "B")?.name ?? "Option B",
+      label: "Player 2",
       votes: votesB,
       position: "B",
     },
