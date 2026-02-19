@@ -10,12 +10,9 @@ export async function getUserData() {
     return null;
   }
 
-  const intraUser = await prisma.intraUser.findUnique({
+  const intraUser = await prisma.user.findUnique({
     where: {
       login: session.user.login,
-    },
-    include: {
-      preferences: true,
     },
   });
 

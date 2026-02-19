@@ -30,31 +30,56 @@ model User {
   accounts        Account[]
   Authenticator   Authenticator[]
 
-  sessions Session[]
-  bookings Booking[]
+  sessions  Session[]
+  polls     Poll[]     @relation("PollCreator")
+  pollVotes PollVote[]
 }
 
-model Gym {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  capacity    Int
-  bookings    Booking[]
-}
-
-model Booking {
+model Poll {
   id        String   @id @default(uuid())
-  userId    String
-  gymId     String
-  date      DateTime @db.Date
-  startTime DateTime
+  shortId   String   @unique
+  active    Boolean  @default(true)
+  creatorId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gym  Gym  @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  creator User         @relation("PollCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  options PollOption[]
+  votes   PollVote[]
+}
 
-  @@unique([userId, date])
+model PollOption {
+  id          String             @id @default(uuid())
+  pollId      String
+  position    PollOptionPosition
+  name        String
+  cover       String
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  poll  Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+
+  @@unique([pollId, position])
+  @@index([pollId])
+}
+
+model PollVote {
+  id        String   @id @default(uuid())
+  pollId    String
+  optionId  String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@index([pollId, optionId])
+  @@index([userId])
 }
 
 model Account {
@@ -107,38 +132,6 @@ model Authenticator {
   @@id([userId, credentialID])
 }
 
-model Preferences {
-  id                    String    @id @default(uuid())
-  changeProfile         Boolean   @default(true)
-  changeCover           Boolean   @default(true)
-  showQuranInFullScreen Boolean   @default(false)
-  showQuranWidget       Boolean   @default(true)
-  showRanking           Boolean   @default(true)
-  showPomodor           Boolean   @default(true)
-  showNotes             Boolean   @default(true)
-  user                  IntraUser @relation(fields: [intraUserId], references: [id])
-  intraUserId           String
-}
-
-model Update {
-  id      String  @id @default(uuid())
-  message String?
-}
-
-model IntraUser {
-  id          String        @id @default(uuid())
-  avatar      String
-  login       String        @unique
-  level       Float
-  promo       Int
-  campusId    Int
-  name        String
-  rank        Int           @default(0)
-  cover       String?
-  socialLinks String?
-  preferences Preferences[]
-}
-
 model Token {
   id           String   @id @default(uuid())
   acessToken   String
@@ -147,10 +140,9 @@ model Token {
   updatedAt    DateTime @updatedAt
 }
 
-model Task {
-  id        String   @id @default(uuid())
-  active    Boolean
-  updatedAt DateTime @updatedAt
+enum PollOptionPosition {
+  A
+  B
 }
 
 enum Campus {

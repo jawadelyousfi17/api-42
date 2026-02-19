@@ -14,12 +14,10 @@ export default async function ProtectedLayout({
     redirect("/login");
   }
 
-  const intraUser = await getUserData();
-
   return (
     <>
       <Navbar user={session.user} />
-      <main className="px-4">{children}</main>
+      {children}
     </>
   );
 }

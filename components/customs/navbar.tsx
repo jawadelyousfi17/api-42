@@ -16,6 +16,7 @@ import {
   LogOut,
   Settings,
   LayoutDashboard,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,16 @@ const Navbar = ({ user, intraUser }: NavbarProps) => {
             <span>INTRA V4</span>
           </div>
 
+          <div>
+            <ul className="flex gap-8">
+              <li>
+                <Link className="flex gap-1" href={"/create-poll"}><Plus/>Create</Link>
+              </li>
+              <li>
+                <Link href={"/all-polls"}>My polls</Link>
+              </li>
+            </ul>
+          </div>
           <div className="hidden md:flex items-center gap-2"></div>
 
           <div>
