@@ -11,6 +11,7 @@ import {
   Trophy,
   User,
 } from "lucide-react";
+import { redirect } from "next/navigation";
 
 const FEATURES = [
   {
@@ -61,6 +62,8 @@ const VERSES = [
 ];
 
 export default function Page() {
+  redirect("/all-polls");
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-6xl px-4 py-10 md:py-16">
