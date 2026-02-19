@@ -52,8 +52,8 @@ const Navbar = ({ user, intraUser }: NavbarProps) => {
       <nav className="sticky top-0 z-50 w-full border-b px-6 bg-background/60 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"></div>
-            <span>INTRA V4</span>
+            {/* <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"></div> */}
+            <span>Wedesign Polls</span>
           </div>
 
           <div>
