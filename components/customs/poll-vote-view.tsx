@@ -88,7 +88,7 @@ export function PollVoteView({ poll, currentUser }: PollVoteViewProps) {
         {/* Header */}
 
         {/* Main Content */}
-        <main className="flex-1 px-4 pt-2 pb-6 flex flex-col gap-6">
+        <main className="flex-1  pt-2 pb-6 flex flex-col gap-6">
           {/* Question */}
           <div className="text-center space-y-2 py-2">
             <span className="inline-block px-3 py-1 rounded-full bg-[#8c2bee]/20 text-[#8c2bee] text-xs font-bold uppercase tracking-wider">
@@ -117,8 +117,8 @@ export function PollVoteView({ poll, currentUser }: PollVoteViewProps) {
                 {/* Image Background */}
                 <div className="absolute inset-0 bg-slate-800">
                   <Image
-                    src={optionA.cover}
-                    alt={optionA.name}
+                    src={"/images/player1.png"}
+                    alt={"Player 1"}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     unoptimized
@@ -131,10 +131,10 @@ export function PollVoteView({ poll, currentUser }: PollVoteViewProps) {
                 <div className="relative z-10 p-4 flex flex-col gap-3 items-center text-center">
                   <div className="flex flex-col">
                     <h3 className="text-white text-lg font-bold leading-tight">
-                      {optionA.name}
+                      {"Player 1"}
                     </h3>
                     <span className="text-white/60 text-xs font-medium">
-                      Option A
+                      {/* Option A */}
                     </span>
                   </div>
                   <button
@@ -161,8 +161,8 @@ export function PollVoteView({ poll, currentUser }: PollVoteViewProps) {
                 {/* Image Background */}
                 <div className="absolute inset-0 bg-slate-800">
                   <Image
-                    src={optionB.cover}
-                    alt={optionB.name}
+                    src={"/images/player2.png"}
+                    alt={"Player 2"}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     unoptimized
@@ -175,10 +175,10 @@ export function PollVoteView({ poll, currentUser }: PollVoteViewProps) {
                 <div className="relative z-10 p-4 flex flex-col gap-3 items-center text-center">
                   <div className="flex flex-col">
                     <h3 className="text-white text-lg font-bold leading-tight">
-                      {optionB.name}
+                      {"Player 2"}
                     </h3>
                     <span className="text-white/60 text-xs font-medium">
-                      Option B
+                      {/* Option B */}
                     </span>
                   </div>
                   <button
